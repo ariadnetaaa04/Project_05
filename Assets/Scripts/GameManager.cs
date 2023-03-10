@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -9,31 +11,28 @@ public class GameManager : MonoBehaviour
     private float minX = -3.75f;
     private float minY = -3.75f;
     private float distanceBetweenSquares = 2.5f;
+    private int score;
 
-    public bool isGameOver;
+    public bool isGameOver; //publico para poder usarlo en otros scripts
     public float spawnRate = 2f;
     public List<Vector3> targetPositionsInScene;
     public Vector3 randomPos;
 
     public TextMeshProUGUI scoreText;
-    private int score;
+    public TextMeshProUGUI livesText;
+    public GameObject gameOverPanel;
+    public GameObject startGamePanel;
 
-    public TextMeshProUGUI gameOverText;
 
+    private int lives = 3;
 
-    void Start()
+    public bool hasPowerupShield;
+
+    private void Start()
     {
-        isGameOver = false;
-        StartCoroutine("SpawnRandomTarget");
-        scoreText.text = $"Score: { score}";
+        startGamePanel.SetActive(true);
+        gameOverPanel.SetActive(false);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     private Vector3 RandomSpawnPosition()
     {
         float spawnPosX = minX + Random.Range(0, 4) *
@@ -67,12 +66,47 @@ public class GameManager : MonoBehaviour
     public void UpdateScore(int newPoints)
     {
         score += newPoints;
-        scoreText.text = $"Score: { score}";
+        scoreText.text = $"Score:  { score}";
     }
 
     public void GameOver()
     {
         isGameOver = true;
-        gameOverText.gameObject.SetActive(true);
+        gameOverPanel.SetActive(true);
     }
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.
+         GetActiveScene().name);
+    }
+
+    public void StartGame(int difficulty)
+    {
+        isGameOver = false;
+
+        score = 0;
+        UpdateScore(0);
+
+        lives = 3;
+        livesText.text = $"Lives:  { lives}";
+
+        spawnRate /= difficulty; //divideix els segons (cada 2 surt un topo) per 1-2-3 i això ho fa anar mes rapid.
+        
+        StartCoroutine(SpawnRandomTarget());
+        startGamePanel.SetActive(false); //desactivar los paneles al empezar el juego
+        gameOverPanel.SetActive(false);
+        
+    }
+
+    public void MinusLife()
+    {
+        lives--;
+        livesText.text = $"Lives:  { lives}";
+
+        if (lives <= 0)
+        {
+            GameOver();
+        }
+    }
+
 }
